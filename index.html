@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OVA: Recurso Educativo Digital (RED)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Verdes y Blancos Institucionales -->
+    <!-- Application Structure Plan: Se diseña un Objeto Virtual de Aprendizaje (OVA) con una disposición de dos columnas. Un menú lateral fijo a la izquierda permite la navegación entre las secciones pedagógicas (Introducción, Objetivos, etc.). El área de contenido principal a la derecha se actualiza dinámicamente con JavaScript para mostrar la sección seleccionada. Esta estructura es ideal para un aprendizaje guiado y organizado, permitiendo al usuario explorar el contenido de forma secuencial o no lineal. -->
+    <!-- Visualization & Content Choices: 1. Navegación -> Menú lateral con estado activo (HTML/JS) y ahora con iconos para mejorar la usabilidad. Justificación: Estructura clásica y efectiva para un OVA. 2. Fundamentos Teóricos -> Contenido textual con tarjetas destacadas con iconos. Justificación: Facilita la lectura y resalta conceptos clave. 3. Actividades Prácticas -> Cuestionario interactivo. Justificación: Fomenta la participación activa. 4. Evaluación -> Quiz de opción múltiple con retroalimentación. Justificación: Permite la autoevaluación del aprendizaje. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .sidebar-link {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+        .sidebar-link.active, .sidebar-link:hover {
+            background-color: #e6f4ea;
+            color: #166534; /* green-800 */
+            border-left-color: #22c55e; /* green-500 */
+        }
+        .content-pane {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .content-pane.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .quiz-option:hover {
+            background-color: #f0fdf4; /* green-50 */
+        }
+        .quiz-option.selected {
+            background-color: #dcfce7; /* green-100 */
+            border-color: #22c55e; /* green-500 */
+        }
+        .type-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .type-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        
+        /* Estilos para el modal */
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+        }
+        
+        /* Animación para las tarjetas de tipos de informes */
+        .tipo-informe-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .tipo-informe-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        /* Animación para el modal */
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        .modal-content {
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        
+        /* Estilos específicos para las tarjetas de estructura de informes */
+        .estructura-informe-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .estructura-informe-card:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Efecto de brillo en hover */
+        .estructura-informe-card:hover::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .estructura-informe-card:hover::before {
+            left: 100%;
+        }
+        
+        /* Estilos específicos para las tarjetas de tipos de informes */
+        .tipo-informe-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tipo-informe-card:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Efecto de brillo en hover para tipos de informes */
+        .tipo-informe-card:hover::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .tipo-informe-card:hover::before {
+            left: 100%;
+        }
+        
+        /* Estilos específicos para las tarjetas de características */
+        .caracteristica-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .caracteristica-card:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.15), 0 12px 15px -5px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* Efecto de brillo en hover para características */
+        .caracteristica-card:hover::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s;
+        }
+        
+        .caracteristica-card:hover::before {
+            left: 100%;
+        }
+        
+        /* Animación de pulso para las tarjetas activas */
+        .caracteristica-card.active {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+        }
+        
+
+    </style>
+</head>
+<body class="bg-slate-50">
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white shadow-lg flex-shrink-0 hidden md:flex md:flex-col">
+            <div class="p-4">
+                <div style="width: 150px; height: 150px;" class="p-2 mx-auto flex items-center justify-center bg-white rounded-full shadow-lg border-2 border-green-500 transition-shadow duration-300 hover:shadow-green-400">
+                    <img src="img/logo.webp" alt="Logo OVA" class="w-5/6 h-5/6 object-contain" loading="lazy">
+                </div>
+            </div>
+            <nav class="mt-6 flex-1">
+                <a href="#" class="sidebar-link active flex items-center py-3 px-6 font-medium text-slate-700" data-target="introduccion"><span class="mr-3 text-xl">🚀</span> Introducción</a>
+                <a href="#" class="sidebar-link flex items-center py-3 px-6 font-medium text-slate-700" data-target="objetivos"><span class="mr-3 text-xl">🎯</span> Objetivos</a>
+                <a href="#" class="sidebar-link flex items-center py-3 px-6 font-medium text-slate-700" data-target="contenido"><span class="mr-3 text-xl">📚</span> Contenido</a>
+                <a href="#" class="sidebar-link flex items-center py-3 px-6 font-medium text-slate-700" data-target="actividades"><span class="mr-3 text-xl">✍️</span> Actividades</a>
+                <a href="#" class="sidebar-link flex items-center py-3 px-6 font-medium text-slate-700" data-target="evaluacion"><span class="mr-3 text-xl">✔️</span> Evaluación</a>
+                <a href="#" class="sidebar-link flex items-center py-3 px-6 font-medium text-slate-700" data-target="recursos"><span class="mr-3 text-xl">📖</span> Recursos</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 sm:p-6 md:p-10 bg-gray-50">
+            <!-- Mobile Header -->
+            <div class="md:hidden mb-6 flex flex-col items-center">
+                <div style="width: 100px; height: 100px;" class="p-2 flex items-center justify-center bg-white rounded-full shadow-lg transition-shadow duration-300 hover:shadow-green-400 mb-2">
+                    <img src="img/logo.webp" alt="Logo OVA" class="w-5/6 h-5/6 object-contain" loading="lazy">
+                </div>
+                <select id="mobile-nav" class="w-full mt-2 p-2 border rounded-md bg-white shadow-sm">
+                    <option value="introduccion">🚀 Introducción</option>
+                    <option value="objetivos">🎯 Objetivos</option>
+                    <option value="contenido">📚 Contenido</option>
+                    <option value="actividades">✍️ Actividades Prácticas</option>
+                    <option value="evaluacion">✔️ Evaluación</option>
+                    <option value="recursos">📖 Recursos</option>
+                </select>
+            </div>
+            <!-- Introducción -->
+            <div id="introduccion" class="content-pane active">
+                <h2 class="text-2xl sm:text-3xl font-bold text-green-800 mb-4">Estructura de informes y documentos técnicos</h2>
+                <p class="text-slate-700 leading-relaxed mb-4">
+                    El informe es mucho más que un documento: es la llave para comunicar ideas, descubrimientos y proyectos con claridad, orden y precisión. 
+                    En el mundo actual, donde la tecnología y la innovación avanzan a pasos agigantados, los grandes profesionales de la informática, 
+                    la ingeniería y la inteligencia artificial utilizan esta herramienta para presentar resultados, proponer soluciones y compartir avances que transforman la sociedad.
+                </p>
+                <div class="mt-8 p-4 sm:p-6 bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+                    <p class="text-green-800">
+                        💡 Recuerda: En esta unidad, no solo aprenderemos qué es un informe, sus tipos y su estructura, sino que desarrollaremos habilidades de investigación, análisis y redacción técnica, tal como lo hacen expertos en empresas y laboratorios de alto nivel.
+                    </p>
+                </div>
+            </div>
+            <!-- Fin Introducción -->
+
+            <!-- Objetivos -->
+            <div id="objetivos" class="content-pane">
+                <h2 class="text-2xl sm:text-3xl font-bold text-green-800 mb-6">Objetivos de aprendizaje</h2>
+                <ul class="space-y-4">
+                    <li class="flex items-start p-4 bg-white rounded-lg shadow-sm">
+                        <span class="text-green-700 mr-3 text-2xl">🎯</span>
+                        <span>Comprender el concepto, propósito y utilidad del informe como herramienta de comunicación técnica y académica, reconociendo su importancia en la presentación de datos, análisis y conclusiones de manera clara y objetiva.</span>
+                    </li>
+                    <li class="flex items-start p-4 bg-white rounded-lg shadow-sm">
+                        <span class="text-green-700 mr-3 text-2xl">🎯</span>
+                        <span>Identificar y diferenciar los principales tipos de informes, comprendiendo sus características y contextos de aplicación en ámbitos escolares, profesionales y tecnológicos.</span>
+                    </li>
+                    <li class="flex items-start p-4 bg-white rounded-lg shadow-sm">
+                        <span class="text-green-700 mr-3 text-2xl">🎯</span>
+                        <span>Dominar la estructura básica de un informe (portada, introducción, desarrollo, conclusiones y anexos) y aplicar correctamente el uso de conectores para garantizar coherencia y fluidez en el texto.</span>
+                    </li>
+                    <li class="flex items-start p-4 bg-white rounded-lg shadow-sm">
+                        <span class="text-green-700 mr-3 text-2xl">🎯</span>
+                        <span>Desarrollar habilidades de investigación, análisis y redacción técnica para elaborar informes que integren datos, gráficos, tablas y ejemplos prácticos relacionados con la tecnología y la inteligencia artificial.</span>
+                    </li>
+                    <li class="flex items-start p-4 bg-white rounded-lg shadow-sm">
+                        <span class="text-green-700 mr-3 text-2xl">🎯</span>
+                        <span>Fomentar el pensamiento crítico y la comunicación clara al elaborar informes que presenten ventajas, desventajas, recomendaciones y conclusiones fundamentadas sobre temas relevantes en el ámbito tecnológico y educativo.</span>
+                    </li>
+                </ul>
+            </div>
+            <!-- Fin Objetivos -->
+
+            <!-- Fundamentos Teóricos -->
+            <div id="contenido" class="content-pane">
+                                    <!-- Acordeón de temas -->
+                    <div class="w-full max-w-8xl mx-auto">
+                        <div class="mb-4">
+                            <button type="button" class="w-full flex justify-between items-center p-4 bg-green-100 border border-green-300 rounded-t-lg focus:outline-none font-bold text-green-800 text-lg accordion-btn mb-2" data-target="#panel-ecuaciones">
+                                Informe<span class="ml-2">➕</span>
+                            </button>
+                        </div>
+                        <div id="panel-ecuaciones" class="accordion-panel hidden bg-white border border-t-0 border-green-300 rounded-b-lg p-4 mb-6">
+                        <div class="space-y-8 text-slate-700 leading-relaxed">
+                            <div>
+                                <p class="mb-4">
+                                    Un informe es un documento escrito que expone de manera clara, estructurada y objetiva información recopilada sobre un tema específico. Su propósito principal es presentar datos, análisis, resultados y conclusiones,
+                                 para facilitar la comprensión y la toma de decisiones por parte de quienes lo reciben. Los informes pueden incluir gráficos, tablas y recomendaciones, y se utilizan en ámbitos académicos, empresariales, científicos y administrativos.
+                                </p>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-green-700 mb-2">Tipos de informe</h3>
+                                <p class="mb-4">Existen varios tipos de informes que se clasifican según su propósito, contenido, audiencia o estructura. Haz clic en cada tipo de informe para conocer más detalles:</p>
+                                
+                                <!-- Contenedor interactivo de tipos de informes con colores suaves -->
+                                <div class="mt-4 mb-6 p-4 bg-white border border-green-300 rounded-lg shadow-sm">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <!-- Informe de Laboratorio - Azul suave -->
+                                        <div class="tipo-informe-card bg-gradient-to-r from-sky-200 to-blue-300 border-2 border-sky-300 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105" data-tipo="laboratorio">
+                                            <div class="text-center">
+                                                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
+                                                    <span class="text-sky-600 text-2xl">🧪</span>
+                                                </div>
+                                                <h4 class="font-bold text-slate-700 text-lg mb-2">Informe de laboratorio</h4>
+                                                <p class="text-sm text-slate-600">Resultados de experimentos y prácticas</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Informe Académico - Verde suave -->
+                                        <div class="tipo-informe-card bg-gradient-to-r from-emerald-200 to-green-300 border-2 border-emerald-300 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105" data-tipo="academico">
+                                            <div class="text-center">
+                                                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
+                                                    <span class="text-emerald-600 text-2xl">📚</span>
+                                                </div>
+                                                <h4 class="font-bold text-slate-700 text-lg mb-2">Informe académico</h4>
+                                                <p class="text-sm text-slate-600">Investigaciones y estudios educativos</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Informe de Observación - Verde lima suave -->
+                                        <div class="tipo-informe-card bg-gradient-to-r from-lime-200 to-green-300 border-2 border-lime-300 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105" data-tipo="observacion">
+                                            <div class="text-center">
+                                                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
+                                                    <span class="text-lime-600 text-2xl">👁️</span>
+                                                </div>
+                                                <h4 class="font-bold text-slate-700 text-lg mb-2">Informe de observación</h4>
+                                                <p class="text-sm text-slate-600">Registro de fenómenos y comportamientos</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Informe Técnico - Amarillo suave -->
+                                        <div class="tipo-informe-card bg-gradient-to-r from-amber-200 to-yellow-300 border-2 border-amber-300 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105" data-tipo="tecnico">
+                                            <div class="text-center">
+                                                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
+                                                    <span class="text-amber-600 text-2xl">⚙️</span>
+                                                </div>
+                                                <h4 class="font-bold text-slate-700 text-lg mb-2">Informe técnico</h4>
+                                                <p class="text-sm text-slate-600">Información especializada y técnica</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Informe de Investigación - Naranja suave -->
+                                        <div class="tipo-informe-card bg-gradient-to-r from-orange-200 to-amber-300 border-2 border-orange-300 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105" data-tipo="investigacion">
+                                            <div class="text-center">
+                                                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
+                                                    <span class="text-orange-600 text-2xl">🔬</span>
+                                                </div>
+                                                <h4 class="font-bold text-slate-700 text-lg mb-2">Informe de investigación</h4> 
+                                                <p class="text-sm text-slate-600">Estudios científicos sistemáticos</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Informe Administrativo - Azul suave (variación) -->
+                                        <div class="tipo-informe-card bg-gradient-to-r from-blue-200 to-indigo-300 border-2 border-blue-300 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105" data-tipo="administrativo">
+                                            <div class="text-center">
+                                                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
+                                                    <span class="text-blue-600 text-2xl">📋</span>
+                                                </div>
+                                                <h4 class="font-bold text-slate-700 text-lg mb-2">Informe administrativo</h4>
+                                                <p class="text-sm text-slate-600">Gestión y funcionamiento organizacional</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-teal-50 border-l-4 border-teal-400 p-4 rounded-r-lg">
+                                <h3 class="font-bold text-teal-800 mb-2">Estructura básica de un informe</h3>
+                                <p class="mb-4 text-teal-700">Haz clic en cada sección para conocer más detalles sobre su contenido y propósito:</p>
+                                
+                                <!-- Contenedor interactivo de estructura de informes con colores suaves -->
+                                <div class="mt-4 mb-6 p-4 bg-white border border-teal-300 rounded-lg shadow-sm">
+                                    <div class="space-y-3">
+                                        <!-- Portada - Azul suave -->
+                                        <div class="estructura-informe-card bg-gradient-to-r from-sky-200 to-blue-300 border-2 border-sky-300 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105" data-seccion="portada">
+                                            <div class="flex items-center">
+                                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-4 shadow-md">
+                                                    <span class="text-sky-600 text-xl">📄</span>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h4 class="font-bold text-slate-700 text-lg mb-1">Portada</h4>
+                                                    <p class="text-slate-600 text-sm">Página Inicial con Información clave</p>
+                                                </div>
+                                                <div class="text-slate-600 text-2xl">→</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Introducción - Verde suave -->
+                                        <div class="estructura-informe-card bg-gradient-to-r from-emerald-200 to-green-300 border-2 border-emerald-300 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105" data-seccion="introduccion">
+                                            <div class="flex items-center">
+                                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-4 shadow-md">
+                                                    <span class="text-emerald-600 text-xl">🎯</span>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h4 class="font-bold text-slate-700 text-lg mb-1">Introducción</h4>
+                                                    <p class="text-slate-600 text-sm">Establece el contexto y el objetivo</p>
+                                                </div>
+                                                <div class="text-slate-600 text-2xl">→</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Desarrollo - Verde lima suave -->
+                                        <div class="estructura-informe-card bg-gradient-to-r from-lime-200 to-green-300 border-2 border-lime-300 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105" data-seccion="desarrollo">
+                                            <div class="flex items-center">
+                                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-4 shadow-md">
+                                                    <span class="text-lime-600 text-xl">📊</span>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h4 class="font-bold text-slate-700 text-lg mb-1">Desarrollo</h4>
+                                                    <p class="text-slate-600 text-sm">Presenta Información organizada</p>
+                                                </div>
+                                                <div class="text-slate-600 text-2xl">→</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Conclusiones - Amarillo suave -->
+                                        <div class="estructura-informe-card bg-gradient-to-r from-amber-200 to-yellow-300 border-2 border-amber-300 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105" data-seccion="conclusiones">
+                                            <div class="flex items-center">
+                                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-4 shadow-md">
+                                                    <span class="text-amber-600 text-xl">✅</span>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h4 class="font-bold text-slate-700 text-lg mb-1">Conclusiones</h4>
+                                                    <p class="text-slate-600 text-sm">Resume hallazgos y recomendaciones</p>
+                                                </div>
+                                                <div class="text-slate-600 text-2xl">→</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Anexos - Naranja suave -->
+                                        <div class="estructura-informe-card bg-gradient-to-r from-orange-200 to-amber-300 border-2 border-orange-300 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105" data-seccion="anexos">
+                                            <div class="flex items-center">
+                                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-4 shadow-md">
+                                                    <span class="text-orange-600 text-xl">📎</span>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h4 class="font-bold text-slate-700 text-lg mb-1">Anexos</h4>
+                                                    <p class="text-slate-600 text-sm">Incluye datos de apoyo opcionales</p>
+                                                </div>
+                                                <div class="text-slate-600 text-2xl">→</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+
+                            
+                            
+                        </div>
+                    </div>
+                                        
+
+                    
+                    <!-- Nueva sección 2: Documento Tecnico -->
+                    <div class="mb-4">
+                        <button type="button" class="w-full flex justify-between items-center p-4 bg-green-100 border border-green-300 rounded-t-lg focus:outline-none font-bold text-green-800 text-lg accordion-btn mb-2" data-target="#panel-consejos">
+                            Documento técnico<span class="ml-2">➕</span>
+                        </button>
+                    </div>
+                    <div id="panel-consejos" class="accordion-panel hidden bg-white border border-t-0 border-green-300 rounded-b-lg p-4 mb-6">
+                        <div class="space-y-8 text-slate-700 leading-relaxed">
+                            <div>
+                                <p class="mb-4">
+                                    Un documento técnico es un texto escrito que explica, describe o especifica información de carácter técnico o especializado sobre un producto, proceso, sistema, herramienta o procedimiento. 
+                                    Su objetivo principal es transmitir información clara, precisa y estructurada para que el lector pueda comprender, usar, implementar o mantener lo que se describe.
+                                    <br>
+                                    <br>
+                                    En el ámbito de la tecnología, la documentación técnica actúa como un faro que guía a los usuarios, desarrolladores, ingenieros y otros profesionales a través de las intrincadas profundidades de productos, procesos y sistemas. 
+                                      
+                                </p>
+                            </div>
+
+                            <p>
+                                <blockquote class="italic text-green-700 mb-2">"Su propósito principal es comunicar información compleja de manera clara, concisa y precisa, permitiendo al lector comprender, evaluar o aplicar el conocimiento presentado."</blockquote>
+                            </p>
+
+                            <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
+                                <h3 class="font-bold text-green-800 mb-2">Características Clave de un Documento Técnico</h3>
+                                <p class="mb-4">
+                                    Para que un documento sea considerado "técnico", debe poseer ciertas características distintivas. Haz clic en cada característica para conocer más detalles:
+                                </p>
+                                
+                                <!-- Contenedor interactivo de características con iconos animados -->
+                                <div class="mt-4 mb-6 p-4 bg-white border border-green-300 rounded-lg shadow-sm">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                                        <!-- Precisión y Exactitud - Amarillo -->
+                                        <div class="caracteristica-card bg-gradient-to-br from-yellow-200 to-amber-300 border-2 border-yellow-300 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105" data-caracteristica="precision">
+                                            <div class="text-center">
+                                                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
+                                                    <span class="text-yellow-600 text-2xl">🔍</span>
+                                                </div>
+                                                <h4 class="font-bold text-slate-700 text-sm mb-2">Precisión y Exactitud</h4>
+                                                <p class="text-xs text-slate-600">Información verificable</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Claridad y Concisión - Naranja -->
+                                        <div class="caracteristica-card bg-gradient-to-br from-orange-200 to-red-300 border-2 border-orange-300 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105" data-caracteristica="claridad">
+                                            <div class="text-center">
+                                                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
+                                                    <span class="text-orange-600 text-2xl">📖</span>
+                                                </div>
+                                                <h4 class="font-bold text-slate-700 text-sm mb-2">Claridad y Concisión</h4>
+                                                <p class="text-xs text-slate-600">Lenguaje directo</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Organización Lógica - Rojo -->
+                                        <div class="caracteristica-card bg-gradient-to-br from-red-200 to-pink-300 border-2 border-red-300 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105" data-caracteristica="organizacion">
+                                            <div class="text-center">
+                                                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
+                                                    <span class="text-red-600 text-2xl">📊</span>
+                                                </div>
+                                                <h4 class="font-bold text-slate-700 text-sm mb-2">Organización Lógica</h4>
+                                                <p class="text-xs text-slate-600">Estructura coherente</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Objetividad - Azul -->
+                                        <div class="caracteristica-card bg-gradient-to-br from-blue-200 to-indigo-300 border-2 border-blue-300 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105" data-caracteristica="objetividad">
+                                            <div class="text-center">
+                                                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
+                                                    <span class="text-blue-600 text-2xl">⚖️</span>
+                                                </div>
+                                                <h4 class="font-bold text-slate-700 text-sm mb-2">Objetividad</h4>
+                                                <p class="text-xs text-slate-600">Sin sesgos personales</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Orientación al Usuario - Verde -->
+                                        <div class="caracteristica-card bg-gradient-to-br from-green-200 to-emerald-300 border-2 border-green-300 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:scale-105" data-caracteristica="orientacion">
+                                            <div class="text-center">
+                                                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-md">
+                                                    <span class="text-green-600 text-2xl">👤</span>
+                                                </div>
+                                                <h4 class="font-bold text-slate-700 text-sm mb-2">Orientación al Usuario</h4>
+                                                <p class="text-xs text-slate-600">Enfoque en necesidades</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gradient-to-br from-slate-50 to-blue-50 border-l-4 border-blue-400 p-6 rounded-r-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                                <div class="flex items-center mb-4">
+                                    <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <h3 class="font-bold text-2xl text-slate-800 mb-0">Conectores en Documentos Técnicos</h3>
+                                </div>
+                                
+                                <div class="space-y-4 mb-6">
+                                    <p class="text-slate-700 leading-relaxed">
+                                        En un documento técnico, los conectores son palabras o expresiones que sirven para enlazar ideas, frases o párrafos, logrando que el texto sea coherente, fluido y fácil de seguir.
+                                    </p>
+                                    <p class="text-slate-700 leading-relaxed">
+                                        Su función es guiar al lector a través de la información técnica, mostrando relaciones como causa-efecto, secuencia, contraste, ejemplo o conclusión. En un contexto técnico, los conectores ayudan a que las instrucciones, explicaciones y análisis se entiendan sin confusión.
+                                    </p>
+                                </div>
+                                
+                                <div class="bg-white rounded-lg p-4 mb-6 border border-slate-200 shadow-sm">
+                                    <h4 class="text-blue-700 font-semibold mb-3 flex items-center">
+                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                        </svg>
+                                        Ejemplos útiles:
+                                    </h4>
+                                    <div class="grid md:grid-cols-3 gap-4">
+                                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg border-l-3 border-blue-400">
+                                            <h5 class="font-semibold text-blue-800 mb-2">Para introducir</h5>
+                                            <p class="text-sm text-slate-700">"En primer lugar...", "Este informe presenta..."</p>
+                                        </div>
+                                        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 p-3 rounded-lg border-l-3 border-indigo-400">
+                                            <h5 class="font-semibold text-indigo-800 mb-2">Para desarrollar</h5>
+                                            <p class="text-sm text-slate-700">"Además...", "Por otra parte..."</p>
+                                        </div>
+                                        <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-3 rounded-lg border-l-3 border-purple-400">
+                                            <h5 class="font-semibold text-purple-800 mb-2">Para concluir</h5>
+                                            <p class="text-sm text-slate-700">"En resumen...", "Se concluye que..."</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gradient-to-r from-slate-50 to-blue-50 rounded-lg p-5 border border-slate-200">
+                                    <h4 class="text-blue-700 font-semibold mb-4 flex items-center">
+                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                        Ejemplo: Uso de conectores en un documento técnico
+                                    </h4>
+                                    <div class="bg-white rounded-lg p-4 shadow-sm border border-slate-200">
+                                        <div class="mb-4">
+                                            <h5 class="font-bold text-slate-800 text-lg mb-2">Título del documento: Análisis del impacto ambiental de los residuos electrónicos</h5>
+                                        </div>
+                                        
+                                        <div class="space-y-4">
+                                            <div class="bg-gradient-to-r from-blue-50 to-transparent p-3 rounded-lg border-l-4 border-blue-400">
+                                                <h6 class="font-semibold text-blue-800 mb-2">Introducción:</h6>
+                                                <p class="text-slate-700"><span class="bg-yellow-100 px-1 rounded">En primer lugar</span>, este informe presenta un panorama general sobre el crecimiento del consumo de dispositivos electrónicos en la última década. <span class="bg-yellow-100 px-1 rounded">Este documento tiene como objetivo</span> analizar los efectos que los residuos electrónicos generan en el medio ambiente y proponer estrategias de manejo sostenible.</p>
+                                            </div>
+                                            
+                                            <div class="bg-gradient-to-r from-indigo-50 to-transparent p-3 rounded-lg border-l-4 border-indigo-400">
+                                                <h6 class="font-semibold text-indigo-800 mb-2">Desarrollo:</h6>
+                                                <p class="text-slate-700"><span class="bg-yellow-100 px-1 rounded">Además</span>, se identifican los componentes más contaminantes presentes en los residuos electrónicos, tales como el plomo y el mercurio.
+                                                <span class="bg-yellow-100 px-1 rounded">Por otra parte</span>, se revisan los marcos normativos existentes en América Latina en relación con la gestión de estos residuos.
+                                                <span class="bg-yellow-100 px-1 rounded">Asimismo</span>, se analizan casos exitosos de reciclaje en países como Alemania y Japón, lo cual sirve como referente para adaptar buenas prácticas.</p>
+                                            </div>
+                                            
+                                            <div class="bg-gradient-to-r from-purple-50 to-transparent p-3 rounded-lg border-l-4 border-purple-400">
+                                                <h6 class="font-semibold text-purple-800 mb-2">Conclusión:</h6>
+                                                <p class="text-slate-700"><span class="bg-yellow-100 px-1 rounded">En resumen</span>, el impacto ambiental de los residuos electrónicos es considerable y requiere atención inmediata. <span class="bg-yellow-100 px-1 rounded">Se concluye que</span> la implementación de normativas más estrictas y campañas de concientización son claves para reducir sus efectos.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
+                                <h4 class="text-green-700 font-semibold mb-2">Ejemplo de documento técnico:</h4>
+                          
+                                <div class="mt-4 mb-6 p-4 bg-white border border-green-300 rounded-lg shadow-sm">
+                                    <div class="text-sm text-gray-600 mb-4">
+                                        <strong>Título:</strong>Ventajas y Desventajas del Uso de IA en el Aula<br>
+                                        <strong>Autor:</strong> Nicolás Herrera - Grado 10°B<br>
+                                        <strong>Fecha:</strong> 4 de agosto de 2025<br>
+                                        <strong>Institución:</strong> Institución Educativa Técnico Integrado - Área de Tecnología
+                                    </div>
+                                    
+                                    <h4 class="text-green-700 font-semibold mb-2">Introducción</h4>
+                                    <p class="mb-3 text-sm">
+                                        La Inteligencia Artificial (IA) está transformando diversos campos, incluyendo la educación. 
+                                        Este reporte analiza las principales ventajas y desventajas de implementar herramientas de IA 
+                                        en el aula, como asistentes virtuales, plataformas de aprendizaje adaptativo y generadores de contenido.
+                                        <br>
+                                        El propósito de este documento es presentar un análisis objetivo sobre el impacto de estas tecnologías en la experiencia educativa de los estudiantes de secundaria.
+                                    </p>
+
+                                    <h4 class="text-green-700 font-semibold mb-2">Desarrollo</h4>
+                                    <h4 class="text-green-700 font-semibold mb-2">¿Qué es la inteligencia artificial?</h4>
+                                    <p class="mb-3 text-sm">
+                                        La inteligencia artificial es una rama de la informática que crea sistemas capaces de realizar tareas que normalmente requieren inteligencia humana, como reconocer imágenes, responder preguntas o predecir comportamientos.
+                                    </p>
+
+                                    <h4 class="text-green-700 font-semibold mb-2">Aplicaciones comunes de IA en educación</h4>
+                                    <ul class="list-disc list-inside mb-3 text-sm space-y-1">
+                                        <li><strong>Chatbots educativos:</strong> Responden preguntas frecuentes sobre temas escolares</li>
+                                        <li><strong>Plataformas adaptativas:</strong> Ajustan el nivel de dificultad según el rendimiento (Khan Academy, Duolingo)</li>
+                                        <li><strong>Asistentes de redacción:</strong> Como Grammarly o ChatGPT</li>
+                                        <li><strong>Evaluaciones automatizadas:</strong> Corrigen exámenes y proporcionan retroalimentación inmediata</li>
+                                    </ul>
+
+                                    <div class="mb-4">
+                                        <div class="mb-4">
+                                            <h5 class="font-semibold text-green-700 mb-2">Ventajas</h5>
+                                            <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                                                <li>Personalización del aprendizaje</li>
+                                                <li>Acceso 24/7 a recursos</li>
+                                                <li>Mejora de la eficiencia docente</li>
+                                                <li>Apoyo a estudiantes con necesidades especiales</li>
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-semibold text-green-700 mb-2">Desventajas</h5>
+                                            <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                                                <li>Dependencia excesiva de la tecnología</li>
+                                                <li>Posible reducción del pensamiento crítico</li>
+                                                <li>Riesgo de desinformación</li>
+                                                <li>Problemas de privacidad y seguridad</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <h4 class="text-green-700 font-semibold mb-2">Resultados de Encuesta Local (10°A y 10°B)</h4>
+                                    <ul class="text-sm space-y-1">
+                                        <li>65% han usado herramientas de IA para tareas escolares</li>
+                                        <li>40% se consideran demasiado dependientes de ellas</li>
+                                        <li>80% creen que los docentes deben enseñar a usarlas responsablemente</li>
+                                    </ul>
+
+                                    <h4 class="text-green-700 font-semibold mb-2 mt-4">Conclusiones</h4>
+                                    <p class="text-sm">
+                                        La inteligencia artificial puede ser un poderoso aliado en la educación, pero su uso debe 
+                                        estar guiado por principios éticos y pedagógicos. Es necesario que los estudiantes aprendan 
+                                        no solo a usar estas herramientas, sino también a pensar críticamente sobre la información que reciben.
+                                    </p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Fin Fundamentos Teóricos -->
+
+            <!-- Actividades Prácticas -->
+            <div id="actividades" class="content-pane">
+                <h2 class="text-2xl sm:text-3xl font-bold text-green-800 mb-6">Actividades prácticas</h2>
+                <div class="space-y-8">
+                    <!-- Ejercicio 1 -->
+                    <div class="bg-white border-l-4 border-green-500 rounded-lg shadow-sm p-6">
+                        <h3 class="text-xl font-bold text-green-700 mb-2">Ejercicio 1: Tipos de informes</h3>
+                        <p class="mb-4"><span class="font-semibold">Si estás realizando una investigación académica, ¿cuál sería el tipo de informe más acorde?</span></p>
+                        <div class="space-y-2">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="ejercicio1" value="a" class="activity-radio">
+                                <span>a) Informe laboral</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="ejercicio1" value="b" class="activity-radio">
+                                <span>b) Informe administrativo</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="ejercicio1" value="c" class="activity-radio">
+                                <span>c) Informe de investigación</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="ejercicio1" value="d" class="activity-radio">
+                                <span>d) Informe financiero </span>
+                            </label>
+                        </div>
+                    </div>
+                    <!-- Ejercicio 2 -->
+                    <div class="bg-white border-l-4 border-green-500 rounded-lg shadow-sm p-6">
+                        <h3 class="text-xl font-bold text-green-700 mb-2">Ejercicio 2: Uso de conectores</h3>
+                        <p class="mb-4"><span class="font-semibold">En el fragmento del documento técnico, ¿cuál sería el conector más adecuado para iniciar la descripción?</span></p>
+                        <div class="space-y-2">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="ejercicio2" value="a" class="activity-radio">
+                                <span>a) En resumen</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="ejercicio2" value="b" class="activity-radio">
+                                <span>b) En primer lugar</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="ejercicio2" value="c" class="activity-radio">
+                                <span>c) Por otro lado</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="ejercicio2" value="d" class="activity-radio">
+                                <span>d) Además</span>
+                            </label>
+                        </div>
+                    </div>
+                    <!-- Ejercicio 3 -->
+                    <div class="bg-white border-l-4 border-green-500 rounded-lg shadow-sm p-6">
+                        <h3 class="text-xl font-bold text-green-700 mb-2">Ejercicio 3: Estructura de informes</h3>
+                        <p class="mb-4"><span class="font-semibold">¿cuál de los siguientes elementos forma parte del esquema de un informe?</span></p>
+                        <div class="space-y-2">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="ejercicio3" value="a" class="activity-radio">
+                                <span>a) Bibliografía detallada</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="ejercicio3" value="b" class="activity-radio">
+                                <span>b) Posibles conclusiones</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="ejercicio3" value="c" class="activity-radio">
+                                <span>c) Índice de tablas</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="ejercicio3" value="d" class="activity-radio">
+                                <span>d) Cronograma de trabajo</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <button id="check-activity-btn" class="mt-6 bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors">Verificar Respuestas</button>
+                <div id="activity-result" class="mt-4 font-medium"></div>
+            </div>
+
+            <!-- Evaluación -->
+            <div id="evaluacion" class="content-pane">
+                <h2 class="text-2xl sm:text-3xl font-bold text-green-800 mb-6">Evaluación</h2>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <p class="text-slate-600 mb-6">Comprueba lo que has aprendido. Selecciona la respuesta correcta para cada pregunta.</p>
+                    <div id="quiz-container"></div>
+                    <button id="submit-quiz-btn" class="mt-6 bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors">Finalizar Evaluación</button>
+                    <div id="quiz-result" class="mt-4 text-lg font-bold"></div>
+                </div>
+            </div>
+
+            <!-- Recursos -->
+            <div id="recursos" class="content-pane">
+                <h2 class="text-2xl sm:text-3xl font-bold text-green-800 mb-6">Recursos para profundizar</h2>
+                <p class="text-slate-700 leading-relaxed mb-6">Para ampliar tu conocimiento te recomendamos explorar los siguientes enlaces y documentos:</p>
+                <ul class="space-y-4">
+                    <!-- Recurso 1 -->
+                    <li class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col sm:flex-row sm:items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-green-700">Estructura de un informe</h3>
+                            <a href="https://www.epnewman.edu.pe/revista/empresa/estructura-informe/" target="_blank" class="underline text-slate-700 hover:text-green-700">Ir al recurso</a>
+                        </div>
+                        <div class="mt-4 sm:mt-0 sm:ml-6 flex-shrink-0">
+                            <div class="bg-green-50 border border-green-300 rounded flex items-center justify-center" style="width:2cm;height:2cm;">
+                                <img src="img/qr1.png" alt="Solución ejercicio 1" class="max-w-full max-h-full object-contain" loading="lazy">
+                            </div>
+                        </div>
+                    </li>
+                    <!-- Recurso 2 -->
+                    <li class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col sm:flex-row sm:items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-green-700">Quiz documentos técnicos</h3>
+                            <a href="https://wordwall.net/es/resource/88361130/rye-temas-de-ingenier%C3%ADa/tema-5-ejercicios-de-redacci%C3%B3n-de" target="_blank" class="underline text-slate-700 hover:text-green-700">Ir al recurso</a>
+                        </div>
+                        <div class="mt-4 sm:mt-0 sm:ml-6 flex-shrink-0">
+                            <div class="bg-green-50 border border-green-300 rounded flex items-center justify-center" style="width:2cm;height:2cm;">
+                                <img src="img/qr2.png" alt="Solución ejercicio 1" class="max-w-full max-h-full object-contain" loading="lazy">
+                            </div>
+                        </div>
+                    </li>
+                
+                </ul>
+            </div>
+            
+            <!-- Footer/Credits -->
+            <footer class="mt-12 pt-6 border-t-2 border-slate-200 text-center">
+                <p class="text-slate-600 font-medium">Creado por:</p>
+                <p class="text-green-800 font-bold text-lg">Centro de Innovación en TIC para el apoyo de la Docencia CINTIA</p>
+                <p class="text-slate-500 text-sm">Universidad de Córdoba</p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Modal para tipos de informes -->
+    <div id="modal-tipos-informe" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto modal-content">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 id="modal-titulo" class="text-2xl font-bold text-gray-800"></h3>
+                    <button id="cerrar-modal" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+                </div>
+                <div id="modal-contenido" class="space-y-4">
+                    <!-- El contenido se cargará dinámicamente -->
+                </div>
+                <div class="mt-6 flex justify-end">
+                    <button id="cerrar-modal-btn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para estructura de informes -->
+    <div id="modal-estructura-informe" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto modal-content">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 id="modal-estructura-titulo" class="text-2xl font-bold text-gray-800"></h3>
+                    <button id="cerrar-modal-estructura" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+                </div>
+                <div id="modal-estructura-contenido" class="space-y-4">
+                    <!-- El contenido se cargará dinámicamente -->
+                </div>
+                <div class="mt-6 flex justify-end">
+                    <button id="cerrar-modal-estructura-btn" class="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para características de documentos técnicos -->
+    <div id="modal-caracteristicas" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto modal-content">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 id="modal-caracteristicas-titulo" class="text-2xl font-bold text-gray-800"></h3>
+                    <button id="cerrar-modal-caracteristicas" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+                </div>
+                <div id="modal-caracteristicas-contenido" class="space-y-4">
+                    <!-- El contenido se cargará dinámicamente -->
+                </div>
+                <div class="mt-6 flex justify-end">
+                    <button id="cerrar-modal-caracteristicas-btn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const sidebarLinks = document.querySelectorAll('.sidebar-link');
+    const contentPanes = document.querySelectorAll('.content-pane');
+    const mobileNav = document.getElementById('mobile-nav');
+
+    function switchPane(targetId) {
+        contentPanes.forEach(pane => {
+            pane.classList.remove('active');
+        });
+        const targetPane = document.getElementById(targetId);
+        if (targetPane) {
+            targetPane.classList.add('active');
+        }
+
+        sidebarLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.dataset.target === targetId) {
+                link.classList.add('active');
+            }
+        });
+        
+        if (mobileNav.value !== targetId) {
+            mobileNav.value = targetId;
+        }
+    }
+
+    sidebarLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = e.currentTarget.dataset.target;
+            switchPane(targetId);
+        });
+    });
+
+    mobileNav.addEventListener('change', (e) => {
+        switchPane(e.target.value);
+    });
+
+    // --- Actividad Práctica ---
+    const activityData = [
+        { 
+            question: "Un video tutorial que muestra cómo resolver una ecuación.", 
+            options: ["Interactividad", "Finalidad Educativa", "Reusabilidad"], 
+            answer: "Finalidad Educativa" 
+        },
+        { 
+            question: "Un quiz en línea que da retroalimentación inmediata.", 
+            options: ["Interactividad", "Adaptabilidad", "Formato Digital"], 
+            answer: "Interactividad" 
+        },
+        { 
+            question: "Una simulación de un laboratorio de química que se puede usar en bachillerato y universidad.", 
+            options: ["Reusabilidad", "Accesibilidad", "Intencionalidad Educativa"], 
+            answer: "Reusabilidad" 
+        }
+    ];
+
+    const activityContainer = document.getElementById('activity-container');
+    if (activityContainer) {
+        activityData.forEach((item, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'p-4 border rounded-lg';
+            
+            let optionsHtml = item.options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+
+            questionDiv.innerHTML = `
+                <p class="font-medium text-slate-700 mb-2">${index + 1}. ${item.question}</p>
+                <select class="activity-select w-full p-2 border rounded-md bg-white" data-answer="${item.answer}">
+                    <option value="">Selecciona una característica...</option>
+                    ${optionsHtml}
+                </select>
+            `;
+            activityContainer.appendChild(questionDiv);
+        });
+    }
+
+    const checkActivityBtn = document.getElementById('check-activity-btn');
+    if (checkActivityBtn) {
+        checkActivityBtn.addEventListener('click', () => {
+            const selects = document.querySelectorAll('.activity-select');
+            let correctAnswers = 0;
+            selects.forEach(select => {
+                if (select.value === select.dataset.answer) {
+                    correctAnswers++;
+                    select.classList.add('border-green-500');
+                    select.classList.remove('border-red-500');
+                } else {
+                    select.classList.add('border-red-500');
+                    select.classList.remove('border-green-500');
+                }
+            });
+            const resultDiv = document.getElementById('activity-result');
+            resultDiv.textContent = `Obtuviste ${correctAnswers} de ${activityData.length} respuestas correctas.`;
+            resultDiv.className = correctAnswers === activityData.length ? 'mt-4 font-medium text-green-700' : 'mt-4 font-medium text-red-700';
+        });
+    }
+
+    // --- Evaluación Quiz ---
+    const quizData = [
+        {
+            question: "¿Cuál es el propósito principal de un informe?",
+            options: ["Presentar opiniones personales sobre un tema", "Exponer información clara, estructurada y objetiva sobre un tema específico", "Narrar experiencias de manera libre y creativa", "Sustituir la comunicación oral en cualquier contexto"],
+            answer: "Exponer información clara, estructurada y objetiva sobre un tema específico"
+        },
+        {
+            question: "¿Cuál de las siguientes opciones NO es una parte esencial de la estructura básica de un informe?",
+            options: ["Portada", "Desarrollo", "Conclusiones", "Índice de jergas técnicas"],
+            answer: "Índice de jergas técnicas"
+        },
+        {
+            question: "Si estás realizando una investigación experimental y necesitas presentar resultados y análisis detallados, ¿qué tipo de documento sería más adecuado?",
+            options: ["Informe técnico o científico", "Cuento narrativo", "Manual de usuario", "Currículum vitae"],
+            answer: "Informe técnico o científico"
+        },
+        {
+            question: "¿Cuál de las siguientes es una característica clave de un documento técnico?",
+            options: ["Uso frecuente de opiniones subjetivas", "Lenguaje coloquial y poco formal", "Precisión y exactitud de la información", "Extensión mínima para facilitar la lectura"],
+            answer: "Precisión y exactitud de la información"
+        },
+        {
+            question: "En un documento técnico, ¿cuál es la función principal de los conectores?",
+            options: ["Decorar el texto con expresiones llamativas", "Enlazar ideas para que el texto sea coherente y fácil de seguir", "Reducir la cantidad de datos técnicos", "Reemplazar la estructura de títulos y subtítulos"],
+            answer: "Enlazar ideas para que el texto sea coherente y fácil de seguir"
+        }
+    ];
+
+    const quizContainer = document.getElementById('quiz-container');
+    if(quizContainer) {
+        quizData.forEach((q, index) => {
+            const questionEl = document.createElement('div');
+            questionEl.className = 'mb-6';
+            questionEl.innerHTML = `<p class="font-semibold mb-2">${index + 1}. ${q.question}</p>`;
+            
+            const optionsContainer = document.createElement('div');
+            optionsContainer.className = 'space-y-2';
+            
+            q.options.forEach(option => {
+                const optionEl = document.createElement('div');
+                optionEl.className = 'quiz-option p-3 border-2 border-slate-200 rounded-lg cursor-pointer';
+                optionEl.textContent = option;
+                optionEl.addEventListener('click', () => {
+                    questionEl.querySelectorAll('.quiz-option').forEach(el => el.classList.remove('selected'));
+                    optionEl.classList.add('selected');
+                });
+                optionsContainer.appendChild(optionEl);
+            });
+            
+            questionEl.appendChild(optionsContainer);
+            quizContainer.appendChild(questionEl);
+        });
+    }
+
+    const submitQuizBtn = document.getElementById('submit-quiz-btn');
+    if(submitQuizBtn){
+        submitQuizBtn.addEventListener('click', () => {
+            let score = 0;
+            const questions = quizContainer.querySelectorAll('.mb-6');
+            const feedbacks = [
+                'Correcto: El propósito principal de un informe es exponer información clara, estructurada y objetiva sobre un tema específico.',
+                'Correcto: El índice de jergas técnicas NO es una parte esencial de la estructura básica de un informe.',
+                'Correcto: Para una investigación experimental con resultados y análisis detallados, el informe técnico o científico es el más adecuado.',
+                'Correcto: La precisión y exactitud de la información es una característica clave de un documento técnico.',
+                'Correcto: Los conectores enlazan ideas para que el texto sea coherente y fácil de seguir.'
+            ];
+            const wrongFeedbacks = [
+                'Incorrecto. El propósito de un informe no es presentar opiniones personales, sino información objetiva y estructurada.',
+                'Incorrecto. Recuerda que portada, desarrollo y conclusiones SÍ son partes esenciales de un informe.',
+                'Incorrecto. Para investigación experimental con análisis detallados, necesitas un informe técnico o científico.',
+                'Incorrecto. Un documento técnico debe caracterizarse por la precisión y exactitud, no por opiniones subjetivas.',
+                'Incorrecto. Los conectores tienen la función de enlazar ideas para la coherencia, no de decorar el texto.'
+            ];
+            questions.forEach((q, index) => {
+                const selectedOption = q.querySelector('.quiz-option.selected');
+                let feedbackDiv = q.querySelector('.quiz-feedback');
+                if (!feedbackDiv) {
+                    feedbackDiv = document.createElement('div');
+                    feedbackDiv.className = 'quiz-feedback mt-2 text-sm';
+                    q.appendChild(feedbackDiv);
+                }
+                if (selectedOption && selectedOption.textContent === quizData[index].answer) {
+                    score++;
+                    feedbackDiv.innerHTML = `<span class='text-green-700 font-semibold'>✔️ ${feedbacks[index]}</span>`;
+                } else {
+                    feedbackDiv.innerHTML = `<span class='text-red-700 font-semibold'>❌ ${wrongFeedbacks[index]}</span>`;
+                }
+            });
+            const resultEl = document.getElementById('quiz-result');
+            resultEl.textContent = `Tu puntuación es: ${score} de ${quizData.length}.`;
+            if (score / quizData.length >= 0.7) {
+                resultEl.className = 'mt-4 text-lg font-bold text-green-700';
+            } else {
+                resultEl.className = 'mt-4 text-lg font-bold text-red-700';
+            }
+        });
+    }
+    });
+
+    // --- Sistema de modales para tipos de informes ---
+    const modal = document.getElementById('modal-tipos-informe');
+    const modalTitulo = document.getElementById('modal-titulo');
+    const modalContenido = document.getElementById('modal-contenido');
+    const cerrarModal = document.getElementById('cerrar-modal');
+    const cerrarModalBtn = document.getElementById('cerrar-modal-btn');
+
+    // Datos de los tipos de informes con colores vibrantes
+    const tiposInformes = {
+        laboratorio: {
+            titulo: "Informe de laboratorio",
+            color: "from-cyan-400 to-blue-500",
+            descripcion: "Documento que presenta los resultados de experimentos o prácticas realizadas en un laboratorio.",
+            caracteristicas: [
+                "Incluye metodología experimental detallada",
+                "Presenta datos cuantitativos y cualitativos",
+                "Contiene análisis de resultados",
+                "Incluye conclusiones basadas en evidencia",
+                "Puede incluir gráficos, tablas y diagramas"
+            ],
+            estructura: [
+                "Título y objetivo del experimento",
+                "Materiales y métodos utilizados",
+                "Resultados obtenidos",
+                "Análisis y discusión",
+                "Conclusiones"
+            ],
+            ejemplo: "Un informe sobre la determinación del pH de diferentes sustancias químicas, incluyendo los procedimientos seguidos, los datos recolectados y las conclusiones sobre la acidez o basicidad de cada sustancia."
+        },
+        academico: {
+            titulo: "Informe académico",
+            color: "from-green-500 to-emerald-600",
+            descripcion: "Documento que presenta investigaciones, análisis o estudios realizados en contextos educativos.",
+            caracteristicas: [
+                "Sigue formatos académicos específicos",
+                "Incluye revisión de literatura",
+                "Presenta argumentos fundamentados",
+                "Utiliza citas y referencias bibliográficas",
+                "Dirigido a la comunidad académica"
+            ],
+            estructura: [
+                "Resumen ejecutivo",
+                "Introducción y marco teórico",
+                "Metodología de investigación",
+                "Resultados y análisis",
+                "Conclusiones y recomendaciones",
+                "Bibliografía"
+            ],
+            ejemplo: "Un informe sobre el impacto de las redes sociales en el rendimiento académico de estudiantes universitarios, incluyendo encuestas, análisis estadístico y conclusiones sobre la correlación entre uso de redes y calificaciones."
+        },
+        observacion: {
+            titulo: "Informe de observación",
+            color: "from-lime-400 to-green-500",
+            descripcion: "Documento que registra observaciones sistemáticas de fenómenos, comportamientos o situaciones específicas.",
+            caracteristicas: [
+                "Basado en observación directa",
+                "Incluye descripciones detalladas",
+                "Puede ser cualitativo o cuantitativo",
+                "Utiliza instrumentos de observación",
+                "Presenta hallazgos objetivos"
+            ],
+            estructura: [
+                "Objetivo de la observación",
+                "Contexto y participantes",
+                "Procedimiento de observación",
+                "Datos recolectados",
+                "Análisis de observaciones",
+                "Conclusiones"
+            ],
+            ejemplo: "Un informe sobre el comportamiento de estudiantes durante las clases virtuales, observando patrones de participación, distracciones y niveles de atención durante diferentes tipos de actividades."
+        },
+        tecnico: {
+            titulo: "Informe técnico",
+            color: "from-yellow-400 to-amber-500",
+            descripcion: "Documento especializado que presenta información técnica sobre productos, procesos o sistemas.",
+            caracteristicas: [
+                "Lenguaje técnico especializado",
+                "Incluye especificaciones técnicas",
+                "Puede contener diagramas y esquemas",
+                "Dirigido a profesionales del área",
+                "Enfocado en aspectos técnicos específicos"
+            ],
+            estructura: [
+                "Resumen técnico",
+                "Especificaciones del sistema/producto",
+                "Análisis técnico detallado",
+                "Resultados de pruebas",
+                "Recomendaciones técnicas",
+                "Anexos técnicos"
+            ],
+            ejemplo: "Un informe sobre la implementación de un sistema de seguridad informática en una empresa, incluyendo análisis de vulnerabilidades, especificaciones técnicas de las soluciones implementadas y resultados de las pruebas de penetración."
+        },
+        investigacion: {
+            titulo: "Informe de investigación",
+            color: "from-orange-400 to-red-500",
+            descripcion: "Documento que presenta los resultados de una investigación científica o académica sistemática.",
+            caracteristicas: [
+                "Metodología rigurosa y sistemática",
+                "Incluye hipótesis y objetivos claros",
+                "Presenta evidencia empírica",
+                "Análisis estadístico cuando aplica",
+                "Contribuye al conocimiento del campo"
+            ],
+            estructura: [
+                "Resumen y palabras clave",
+                "Introducción y justificación",
+                "Marco teórico",
+                "Metodología",
+                "Resultados",
+                "Discusión",
+                "Conclusiones",
+                "Referencias"
+            ],
+            ejemplo: "Un informe sobre la efectividad de diferentes métodos de enseñanza de programación en estudiantes de secundaria, incluyendo un experimento controlado, análisis estadístico de los resultados y conclusiones sobre qué método es más efectivo."
+        },
+        administrativo: {
+            titulo: "Informe administrativo",
+            color: "from-blue-500 to-indigo-600",
+            descripcion: "Documento que presenta información sobre gestión, administración o funcionamiento de organizaciones.",
+            caracteristicas: [
+                "Enfocado en aspectos organizacionales",
+                "Incluye datos financieros y operativos",
+                "Presenta recomendaciones ejecutivas",
+                "Dirigido a directivos y administradores",
+                "Utiliza lenguaje administrativo"
+            ],
+            estructura: [
+                "Resumen ejecutivo",
+                "Situación actual",
+                "Análisis de datos",
+                "Problemas identificados",
+                "Recomendaciones",
+                "Plan de acción"
+            ],
+            ejemplo: "Un informe sobre la eficiencia de los procesos administrativos en una institución educativa, incluyendo análisis de tiempos de respuesta, costos operativos y recomendaciones para optimizar los procedimientos administrativos."
+        }
+    };
+
+    // Función para abrir el modal
+    function abrirModal(tipo) {
+        const datos = tiposInformes[tipo];
+        modalTitulo.textContent = datos.titulo;
+        
+        modalContenido.innerHTML = `
+            <div class="space-y-6">
+                <div class="bg-gradient-to-r ${datos.color} text-white p-4 rounded-lg">
+                    <h4 class="text-lg font-semibold mb-2">Descripción</h4>
+                    <p>${datos.descripcion}</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Características principales</h4>
+                    <ul class="list-disc list-inside space-y-1 text-gray-700">
+                        ${datos.caracteristicas.map(caract => `<li>${caract}</li>`).join('')}
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Estructura típica</h4>
+                    <ul class="list-decimal list-inside space-y-1 text-gray-700">
+                        ${datos.estructura.map(estruct => `<li>${estruct}</li>`).join('')}
+                    </ul>
+                </div>
+                
+                <div class="bg-gray-50 border-l-4 border-gray-400 p-4 rounded-r-lg">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Ejemplo práctico</h4>
+                    <p class="text-gray-700">${datos.ejemplo}</p>
+                </div>
+            </div>
+        `;
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    // Función para cerrar el modal
+    function cerrarModalFunc() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    // Event listeners para las tarjetas de tipos de informes
+    document.querySelectorAll('.tipo-informe-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const tipo = card.getAttribute('data-tipo');
+            abrirModal(tipo);
+        });
+    });
+
+    // Event listeners para cerrar el modal
+    cerrarModal.addEventListener('click', cerrarModalFunc);
+    cerrarModalBtn.addEventListener('click', cerrarModalFunc);
+
+    // Cerrar modal al hacer clic fuera de él
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            cerrarModalFunc();
+        }
+    });
+
+    // Cerrar modal con la tecla Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+            cerrarModalFunc();
+        }
+    });
+
+    // --- Sistema de modales para estructura de informes ---
+    const modalEstructura = document.getElementById('modal-estructura-informe');
+    const modalEstructuraTitulo = document.getElementById('modal-estructura-titulo');
+    const modalEstructuraContenido = document.getElementById('modal-estructura-contenido');
+    const cerrarModalEstructura = document.getElementById('cerrar-modal-estructura');
+    const cerrarModalEstructuraBtn = document.getElementById('cerrar-modal-estructura-btn');
+
+    // Datos de la estructura de informes
+    const estructuraInformes = {
+        portada: {
+            titulo: "Portada",
+            color: "from-cyan-400 to-blue-500",
+            descripcion: "La portada es la primera página del informe y contiene la información esencial para identificar el documento.",
+            elementos: [
+                "Título del informe (claro y descriptivo)",
+                "Nombre del autor o autores",
+                "Fecha de presentación",
+                "Institución o asignatura",
+                "Nombre del docente o supervisor (si aplica)",
+                "Logo institucional (opcional)"
+            ],
+            consejos: [
+                "El título debe ser específico y descriptivo",
+                "Usa un formato profesional y limpio",
+                "Incluye toda la información de identificación necesaria",
+                "Mantén un diseño consistente con la institución"
+            ],
+            ejemplo: "Título: 'Análisis del Impacto de las Redes Sociales en el Rendimiento Académico de Estudiantes de Secundaria' - Autor: María González - Fecha: 15 de Noviembre 2024 - Institución: Colegio Técnico San José"
+        },
+        introduccion: {
+            titulo: "Introducción",
+            color: "from-green-500 to-emerald-600",
+            descripcion: "La introducción establece el contexto, presenta el tema y explica el propósito del informe.",
+            elementos: [
+                "Contexto del tema o problema",
+                "Objetivo principal del informe",
+                "Justificación de la investigación",
+                "Breve descripción del contenido",
+                "Metodología utilizada (resumen)",
+                "Alcance y limitaciones"
+            ],
+            consejos: [
+                "Captura la atención del lector desde el inicio",
+                "Define claramente el objetivo",
+                "Establece el contexto necesario",
+                "Mantén un tono profesional pero accesible"
+            ],
+            ejemplo: "En la era digital actual, las redes sociales han transformado la forma en que los estudiantes interactúan y aprenden. Este informe analiza el impacto de estas plataformas en el rendimiento académico de estudiantes de secundaria, con el objetivo de identificar patrones de uso y su relación con las calificaciones escolares."
+        },
+        desarrollo: {
+            titulo: "Desarrollo",
+            color: "from-lime-400 to-green-500",
+            descripcion: "El desarrollo es el cuerpo principal del informe donde se presenta toda la información, análisis y datos recopilados.",
+            elementos: [
+                "Información organizada en secciones y subtítulos",
+                "Análisis detallado de datos",
+                "Descripción de metodologías",
+                "Resultados obtenidos",
+                "Gráficos, tablas y diagramas",
+                "Discusión de hallazgos"
+            ],
+            consejos: [
+                "Organiza la información de manera lógica",
+                "Usa subtítulos para facilitar la lectura",
+                "Incluye evidencia que respalde tus argumentos",
+                "Presenta los datos de forma clara y visual"
+            ],
+            ejemplo: "Los resultados de la encuesta aplicada a 150 estudiantes revelaron que el 65% utiliza redes sociales más de 3 horas diarias. El análisis estadístico mostró una correlación negativa (-0.42) entre el tiempo de uso y el promedio académico, sugiriendo que el uso excesivo puede afectar el rendimiento escolar."
+        },
+        conclusiones: {
+            titulo: "Conclusiones",
+            color: "from-yellow-400 to-amber-500",
+            descripcion: "Las conclusiones sintetizan los hallazgos principales y presentan las recomendaciones basadas en la evidencia.",
+            elementos: [
+                "Síntesis de los hallazgos principales",
+                "Respuesta a los objetivos planteados",
+                "Recomendaciones específicas",
+                "Implicaciones de los resultados",
+                "Limitaciones del estudio",
+                "Sugerencias para futuras investigaciones"
+            ],
+            consejos: [
+                "Basate en la evidencia presentada",
+                "Sé específico en las recomendaciones",
+                "Reconoce las limitaciones del estudio",
+                "Conecta las conclusiones con los objetivos"
+            ],
+            ejemplo: "Los hallazgos confirman que existe una relación entre el uso excesivo de redes sociales y el rendimiento académico. Se recomienda implementar programas de educación digital que promuevan un uso responsable de estas plataformas y establecer límites de tiempo para su uso durante los períodos de estudio."
+        },
+        anexos: {
+            titulo: "Anexos",
+            color: "from-orange-400 to-red-500",
+            descripcion: "Los anexos contienen información complementaria que respalda el contenido principal del informe.",
+            elementos: [
+                "Tablas de datos completas",
+                "Gráficos y diagramas detallados",
+                "Encuestas y cuestionarios utilizados",
+                "Fotografías o imágenes relevantes",
+                "Documentos de referencia",
+                "Cálculos y fórmulas utilizadas"
+            ],
+            consejos: [
+                "Incluye solo información relevante",
+                "Numera los anexos secuencialmente",
+                "Referencia los anexos en el texto principal",
+                "Mantén un formato consistente"
+            ],
+            ejemplo: "Anexo A: Cuestionario completo aplicado a estudiantes - Anexo B: Tabla de datos estadísticos detallados - Anexo C: Gráficos de correlación entre variables - Anexo D: Fotos de las sesiones de observación en el aula."
+        }
+    };
+
+    // Función para abrir el modal de estructura
+    function abrirModalEstructura(seccion) {
+        const datos = estructuraInformes[seccion];
+        modalEstructuraTitulo.textContent = datos.titulo;
+        
+        modalEstructuraContenido.innerHTML = `
+            <div class="space-y-6">
+                <div class="bg-gradient-to-r ${datos.color} text-white p-4 rounded-lg">
+                    <h4 class="text-lg font-semibold mb-2">Descripción</h4>
+                    <p>${datos.descripcion}</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Elementos principales</h4>
+                    <ul class="list-disc list-inside space-y-1 text-gray-700">
+                        ${datos.elementos.map(elem => `<li>${elem}</li>`).join('')}
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Consejos importantes</h4>
+                    <ul class="list-disc list-inside space-y-1 text-gray-700">
+                        ${datos.consejos.map(consejo => `<li>${consejo}</li>`).join('')}
+                    </ul>
+                </div>
+                
+                <div class="bg-gray-50 border-l-4 border-gray-400 p-4 rounded-r-lg">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Ejemplo práctico</h4>
+                    <p class="text-gray-700">${datos.ejemplo}</p>
+                </div>
+            </div>
+        `;
+        
+        modalEstructura.classList.remove('hidden');
+        modalEstructura.classList.add('flex');
+    }
+
+    // Función para cerrar el modal de estructura
+    function cerrarModalEstructuraFunc() {
+        modalEstructura.classList.add('hidden');
+        modalEstructura.classList.remove('flex');
+    }
+
+    // Event listeners para las tarjetas de estructura de informes
+    document.querySelectorAll('.estructura-informe-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const seccion = card.getAttribute('data-seccion');
+            abrirModalEstructura(seccion);
+        });
+    });
+
+    // Event listeners para cerrar el modal de estructura
+    cerrarModalEstructura.addEventListener('click', cerrarModalEstructuraFunc);
+    cerrarModalEstructuraBtn.addEventListener('click', cerrarModalEstructuraFunc);
+
+    // Cerrar modal de estructura al hacer clic fuera de él
+    modalEstructura.addEventListener('click', (e) => {
+        if (e.target === modalEstructura) {
+            cerrarModalEstructuraFunc();
+        }
+    });
+
+    // Cerrar modal de estructura con la tecla Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modalEstructura.classList.contains('hidden')) {
+            cerrarModalEstructuraFunc();
+        }
+    });
+
+    // --- Sistema de modales para características de documentos técnicos ---
+    const modalCaracteristicas = document.getElementById('modal-caracteristicas');
+    const modalCaracteristicasTitulo = document.getElementById('modal-caracteristicas-titulo');
+    const modalCaracteristicasContenido = document.getElementById('modal-caracteristicas-contenido');
+    const cerrarModalCaracteristicas = document.getElementById('cerrar-modal-caracteristicas');
+    const cerrarModalCaracteristicasBtn = document.getElementById('cerrar-modal-caracteristicas-btn');
+
+    // Datos de las características con colores suaves
+    const caracteristicasDocumento = {
+        precision: {
+            titulo: "Precisión y Exactitud",
+            color: "from-yellow-200 to-amber-300",
+            descripcion: "La información debe ser precisa y verificable, evitando ambigüedades. No hay lugar para especulaciones infundadas.",
+            elementos: [
+                "Datos verificables y comprobables",
+                "Fuentes confiables y actualizadas",
+                "Cifras exactas y mediciones precisas",
+                "Evitar generalizaciones sin fundamento",
+                "Revisión y validación de información"
+            ],
+            consejos: [
+                "Siempre cita las fuentes de información",
+                "Verifica los datos antes de incluirlos",
+                "Usa terminología específica y precisa",
+                "Evita términos ambiguos o vagos",
+                "Incluye fechas y versiones cuando sea relevante"
+            ],
+            ejemplo: "En lugar de escribir 'muchos estudiantes usan tecnología', es mejor especificar 'El 78% de los estudiantes de secundaria reportan usar dispositivos móviles para tareas escolares, según el estudio de la Universidad Nacional (2024).'"
+        },
+        claridad: {
+            titulo: "Claridad y Concisión",
+            color: "from-orange-200 to-red-300",
+            descripcion: "El lenguaje debe ser claro, directo y fácil de entender. Se deben evitar jergas innecesarias y explicaciones redundantes.",
+            elementos: [
+                "Lenguaje directo y comprensible",
+                "Evitar jerga técnica innecesaria",
+                "Explicaciones concisas pero completas",
+                "Uso de ejemplos cuando sea necesario",
+                "Estructura de párrafos coherente"
+            ],
+            consejos: [
+                "Escribe para tu audiencia específica",
+                "Usa oraciones cortas y directas",
+                "Define términos técnicos cuando sea necesario",
+                "Evita la redundancia y repeticiones",
+                "Revisa el texto desde la perspectiva del lector"
+            ],
+            ejemplo: "En lugar de 'La implementación de la metodología de aprendizaje basada en proyectos ha demostrado ser efectiva para el desarrollo de competencias', es mejor escribir 'Los proyectos prácticos mejoran las habilidades de los estudiantes.'"
+        },
+        organizacion: {
+            titulo: "Organización Lógica",
+            color: "from-red-200 to-pink-300",
+            descripcion: "La información debe estar estructurada de manera lógica, facilitando la navegación y la comprensión. Utilice títulos, listas y diagramas.",
+            elementos: [
+                "Estructura jerárquica clara",
+                "Títulos y subtítulos descriptivos",
+                "Secuencia lógica de información",
+                "Uso de listas y viñetas",
+                "Diagramas y gráficos cuando sea apropiado"
+            ],
+            consejos: [
+                "Planifica la estructura antes de escribir",
+                "Usa un esquema para organizar ideas",
+                "Agrupa información relacionada",
+                "Proporciona transiciones entre secciones",
+                "Incluye un índice para documentos largos"
+            ],
+            ejemplo: "Un documento técnico bien organizado incluye: Introducción (contexto y objetivos), Desarrollo (información principal organizada en secciones), Conclusiones (resumen de hallazgos), y Anexos (información complementaria)."
+        },
+        objetividad: {
+            titulo: "Objetividad",
+            color: "from-blue-200 to-indigo-300",
+            descripcion: "Presente la información de manera objetiva, evitando sesgos u opiniones personales. Las afirmaciones deben estar respaldadas por evidencia y datos.",
+            elementos: [
+                "Presentación neutral de hechos",
+                "Evitar opiniones personales",
+                "Basarse en evidencia y datos",
+                "Reconocer limitaciones del estudio",
+                "Presentar múltiples perspectivas cuando sea apropiado"
+            ],
+            consejos: [
+                "Usa un tono neutral y profesional",
+                "Evita adjetivos subjetivos",
+                "Presenta datos sin interpretación sesgada",
+                "Reconoce las limitaciones de tu investigación",
+                "Cita fuentes para respaldar afirmaciones"
+            ],
+            ejemplo: "En lugar de 'Esta tecnología es increíblemente útil', es mejor escribir 'Esta tecnología ha demostrado una eficiencia del 85% en las pruebas realizadas, según los datos del laboratorio.'"
+        },
+        orientacion: {
+            titulo: "Orientación al Usuario",
+            color: "from-green-200 to-emerald-300",
+            descripcion: "El documento debe estar diseñado teniendo en cuenta las necesidades y el nivel de conocimiento del usuario.",
+            elementos: [
+                "Conocer la audiencia objetivo",
+                "Adaptar el nivel técnico al usuario",
+                "Incluir información contextual necesaria",
+                "Proporcionar ejemplos relevantes",
+                "Considerar el contexto de uso"
+            ],
+            consejos: [
+                "Define claramente tu audiencia objetivo",
+                "Ajusta el nivel de detalle técnico",
+                "Incluye información de contexto cuando sea necesario",
+                "Usa ejemplos que sean relevantes para tu audiencia",
+                "Considera cómo se usará el documento"
+            ],
+            ejemplo: "Para un documento dirigido a estudiantes de secundaria, incluiría definiciones de términos técnicos, ejemplos prácticos de la vida cotidiana, y un glosario al final del documento."
+        }
+    };
+
+    // Función para abrir el modal de características
+    function abrirModalCaracteristicas(caracteristica) {
+        const datos = caracteristicasDocumento[caracteristica];
+        modalCaracteristicasTitulo.textContent = datos.titulo;
+        
+        modalCaracteristicasContenido.innerHTML = `
+            <div class="space-y-6">
+                <div class="bg-gradient-to-r ${datos.color} text-white p-4 rounded-lg">
+                    <h4 class="text-lg font-semibold mb-2">Descripción</h4>
+                    <p>${datos.descripcion}</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Elementos Clave</h4>
+                    <ul class="list-disc list-inside space-y-1 text-gray-700">
+                        ${datos.elementos.map(elem => `<li>${elem}</li>`).join('')}
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Consejos Prácticos</h4>
+                    <ul class="list-disc list-inside space-y-1 text-gray-700">
+                        ${datos.consejos.map(consejo => `<li>${consejo}</li>`).join('')}
+                    </ul>
+                </div>
+                
+                <div class="bg-gray-50 border-l-4 border-gray-400 p-4 rounded-r-lg">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Ejemplo Práctico</h4>
+                    <p class="text-gray-700">${datos.ejemplo}</p>
+                </div>
+            </div>
+        `;
+        
+        modalCaracteristicas.classList.remove('hidden');
+        modalCaracteristicas.classList.add('flex');
+    }
+
+    // Función para cerrar el modal de características
+    function cerrarModalCaracteristicasFunc() {
+        modalCaracteristicas.classList.add('hidden');
+        modalCaracteristicas.classList.remove('flex');
+    }
+
+    // Event listeners para las tarjetas de características
+    document.querySelectorAll('.caracteristica-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const caracteristica = card.getAttribute('data-caracteristica');
+            abrirModalCaracteristicas(caracteristica);
+        });
+    });
+
+    // Event listeners para cerrar el modal de características
+    cerrarModalCaracteristicas.addEventListener('click', cerrarModalCaracteristicasFunc);
+    cerrarModalCaracteristicasBtn.addEventListener('click', cerrarModalCaracteristicasFunc);
+
+    // Cerrar modal de características al hacer clic fuera de él
+    modalCaracteristicas.addEventListener('click', (e) => {
+        if (e.target === modalCaracteristicas) {
+            cerrarModalCaracteristicasFunc();
+        }
+    });
+
+    // Cerrar modal de características con la tecla Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modalCaracteristicas.classList.contains('hidden')) {
+            cerrarModalCaracteristicasFunc();
+        }
+    });
+</script>
+
+<script>
+    // JS para verificación de actividades
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkBtn = document.getElementById('check-activity-btn');
+        if (checkBtn) {
+            checkBtn.addEventListener('click', function() {
+                const respuestasCorrectas = [
+                    'c', // Ejercicio 1: "Informe financiero" (NO es uno de los informes que se solicita investigar)
+                    'b', // Ejercicio 2: "En primer lugar" (conector más adecuado para iniciar descripción)
+                    'b'  // Ejercicio 3: "Posibles conclusiones" (elemento que forma parte del esquema)
+                ];
+                
+                let correctas = 0;
+                let feedback = [];
+                
+                // Verificar cada ejercicio
+                respuestasCorrectas.forEach((respuestaCorrecta, idx) => {
+                    const ejercicioNum = idx + 1;
+                    const radioSeleccionado = document.querySelector(`input[name="ejercicio${ejercicioNum}"]:checked`);
+                    
+                    if (radioSeleccionado && radioSeleccionado.value === respuestaCorrecta) {
+                        correctas++;
+                        feedback.push(`Ejercicio ${ejercicioNum}: ✔️ Correcto`);
+                        // Marcar como correcto visualmente
+                        radioSeleccionado.closest('label').classList.add('text-green-700', 'font-semibold');
+                    } else {
+                        feedback.push(`Ejercicio ${ejercicioNum}: ❌ Incorrecto`);
+                        // Marcar como incorrecto visualmente si hay selección
+                        if (radioSeleccionado) {
+                            radioSeleccionado.closest('label').classList.add('text-red-700', 'font-semibold');
+                        }
+                    }
+                });
+                
+                const resultDiv = document.getElementById('activity-result');
+                resultDiv.innerHTML = `<strong>Respuestas correctas: ${correctas} de 3</strong><br>` + feedback.join('<br>');
+                resultDiv.className = correctas === 3 ? 'mt-4 font-medium text-green-700' : 'mt-4 font-medium text-red-700';
+            });
+        }
+    });
+    // JS simple para acordeón
+    document.querySelectorAll('.accordion-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const panel = document.querySelector(this.getAttribute('data-target'));
+            const isOpen = panel.classList.contains('block');
+            document.querySelectorAll('.accordion-panel').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.accordion-panel').forEach(p => p.classList.remove('block'));
+            if (!isOpen) {
+                panel.classList.remove('hidden');
+                panel.classList.add('block');
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
