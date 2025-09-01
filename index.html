@@ -205,6 +205,138 @@
         background: #94a3b8;
         }
 
+        /* Estilos para los juegos interactivos */
+        
+        /* Estilos para la sopa de letras */
+        .word-search-cell {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #d1d5db;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+            background: white;
+        }
+        
+        .word-search-cell:hover {
+            background-color: #f3f4f6;
+            transform: scale(1.1);
+        }
+        
+        .word-search-cell.selected {
+            background-color: #3b82f6;
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .word-search-cell.found {
+            background-color: #22c55e;
+            color: white;
+            animation: found-pulse 0.6s ease-in-out;
+        }
+        
+        .word-search-cell.hint {
+            background-color: #f59e0b;
+            color: white;
+            animation: hint-blink 1s ease-in-out 3;
+        }
+        
+        @keyframes found-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        @keyframes hint-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .word-to-find {
+            transition: all 0.5s ease-in-out;
+        }
+        
+        .word-to-find.found {
+            background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+            color: white !important;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+            animation: word-found-celebration 0.8s ease-in-out;
+        }
+        
+        @keyframes word-found-celebration {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1.05); }
+        }
+        
+        .word-search-grid {
+            display: grid;
+            gap: 1px;
+            grid-template-columns: repeat(15, 30px);
+            grid-template-rows: repeat(15, 30px);
+        }
+        
+        /* Estilos para el juego de completar palabras */
+        .word-token {
+            user-select: none;
+            transition: all 0.3s ease;
+        }
+        
+        .word-token:hover {
+            transform: scale(1.1);
+        }
+        
+        .word-token.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg) scale(1.1);
+        }
+        
+        .drop-zone {
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+            min-width: 80px;
+        }
+        
+        .drop-zone.drag-over {
+            border-color: #22c55e !important;
+            background-color: #dcfce7 !important;
+            transform: scale(1.05);
+        }
+        
+        .drop-zone.filled {
+            border-color: #22c55e !important;
+            background-color: #dcfce7 !important;
+        }
+        
+        .drop-zone.correct {
+            border-color: #22c55e !important;
+            background-color: #bbf7d0 !important;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+        }
+        
+        .drop-zone.incorrect {
+            border-color: #ef4444 !important;
+            background-color: #fecaca !important;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+        }
+        
+        .word-in-zone {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
     
     </style>
 </head>
@@ -716,80 +848,144 @@
 
             <!-- Actividades Prácticas -->
             <div id="actividades" class="content-pane">
-                <h2 class="text-2xl sm:text-3xl font-bold text-green-800 mb-6">Actividades prácticas</h2>
-                <div class="space-y-8">
-                    <!-- Ejercicio 1 -->
-                    <div class="bg-white border-l-4 border-green-500 rounded-lg shadow-sm p-6">
-                        <h3 class="text-xl font-bold text-green-700 mb-2">Ejercicio 1: Tipos de informes</h3>
-                        <p class="mb-4"><span class="font-semibold">Si estás realizando una investigación académica, ¿cuál sería el tipo de informe más acorde?</span></p>
-                        <div class="space-y-2">
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="radio" name="ejercicio1" value="a" class="activity-radio">
-                                <span>a) Informe laboral</span>
-                            </label>
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="radio" name="ejercicio1" value="b" class="activity-radio">
-                                <span>b) Informe administrativo</span>
-                            </label>
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="radio" name="ejercicio1" value="c" class="activity-radio">
-                                <span>c) Informe de investigación</span>
-                            </label>
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="radio" name="ejercicio1" value="d" class="activity-radio">
-                                <span>d) Informe financiero </span>
-                            </label>
+                <h2 class="text-2xl sm:text-3xl font-bold text-green-800 mb-6">Juegos Interactivos</h2>
+                
+                <!-- Game 1: Word Search -->
+                <div class="bg-white border-l-4 border-green-500 rounded-lg shadow-lg p-6 mb-8">
+                    <h3 class="text-xl font-bold text-green-700 mb-4 flex items-center">
+                        <span class="mr-3 text-2xl">🔍</span>
+                        Juego 1: Sopa de Letras
+                    </h3>
+                    <p class="text-slate-600 mb-6">Encuentra las palabras relacionadas con informes y documentos técnicos en la sopa de letras. Haz clic y arrastra para seleccionar las palabras.</p>
+                    
+                    <!-- Words to find -->
+                    <div class="mb-6">
+                        <h4 class="font-semibold text-green-800 mb-3">Palabras a encontrar:</h4>
+                        <div id="words-list" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                            <div class="word-to-find bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-lg p-2 text-center font-medium text-gray-600 transition-all duration-500" data-word="INFORME">
+                                INFORME
+                            </div>
+                            <div class="word-to-find bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-lg p-2 text-center font-medium text-gray-600 transition-all duration-500" data-word="TECNICO">
+                                TÉCNICO
+                            </div>
+                            <div class="word-to-find bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-lg p-2 text-center font-medium text-gray-600 transition-all duration-500" data-word="DOCUMENTO">
+                                DOCUMENTO
+                            </div>
+                            <div class="word-to-find bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-lg p-2 text-center font-medium text-gray-600 transition-all duration-500" data-word="ESTRUCTURA">
+                                ESTRUCTURA
+                            </div>
+                            <div class="word-to-find bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-lg p-2 text-center font-medium text-gray-600 transition-all duration-500" data-word="PORTADA">
+                                PORTADA
+                            </div>
+                            <div class="word-to-find bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-lg p-2 text-center font-medium text-gray-600 transition-all duration-500" data-word="ANEXOS">
+                                ANEXOS
+                            </div>
+                            <div class="word-to-find bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-lg p-2 text-center font-medium text-gray-600 transition-all duration-500" data-word="DATOS">
+                                DATOS
+                            </div>
+                            <div class="word-to-find bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-lg p-2 text-center font-medium text-gray-600 transition-all duration-500" data-word="ANALISIS">
+                                ANÁLISIS
+                            </div>
                         </div>
                     </div>
-                    <!-- Ejercicio 2 -->
-                    <div class="bg-white border-l-4 border-green-500 rounded-lg shadow-sm p-6">
-                        <h3 class="text-xl font-bold text-green-700 mb-2">Ejercicio 2: Uso de conectores</h3>
-                        <p class="mb-4"><span class="font-semibold">En el fragmento del documento técnico, ¿cuál sería el conector más adecuado para iniciar la descripción?</span></p>
-                        <div class="space-y-2">
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="radio" name="ejercicio2" value="a" class="activity-radio">
-                                <span>a) En resumen</span>
-                            </label>
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="radio" name="ejercicio2" value="b" class="activity-radio">
-                                <span>b) En primer lugar</span>
-                            </label>
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="radio" name="ejercicio2" value="c" class="activity-radio">
-                                <span>c) Por otro lado</span>
-                            </label>
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="radio" name="ejercicio2" value="d" class="activity-radio">
-                                <span>d) Además</span>
-                            </label>
+                    
+                    <!-- Word Search Grid -->
+                    <div class="flex justify-center mb-6">
+                        <div id="word-search-grid" class="inline-block bg-gradient-to-br from-green-50 to-blue-50 p-4 rounded-lg border-2 border-green-300 shadow-inner">
+                            <!-- Grid will be generated by JavaScript -->
                         </div>
                     </div>
-                    <!-- Ejercicio 3 -->
-                    <div class="bg-white border-l-4 border-green-500 rounded-lg shadow-sm p-6">
-                        <h3 class="text-xl font-bold text-green-700 mb-2">Ejercicio 3: Estructura de informes</h3>
-                        <p class="mb-4"><span class="font-semibold">¿cuál de los siguientes elementos forma parte del esquema de un informe?</span></p>
-                        <div class="space-y-2">
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="radio" name="ejercicio3" value="a" class="activity-radio">
-                                <span>a) Bibliografía detallada</span>
-                            </label>
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="radio" name="ejercicio3" value="b" class="activity-radio">
-                                <span>b) Posibles conclusiones</span>
-                            </label>
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="radio" name="ejercicio3" value="c" class="activity-radio">
-                                <span>c) Índice de tablas</span>
-                            </label>
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="radio" name="ejercicio3" value="d" class="activity-radio">
-                                <span>d) Cronograma de trabajo</span>
-                            </label>
+                    
+                    <div class="mt-6 flex justify-between items-center">
+                        <button id="reset-wordsearch-btn" class="bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">
+                            🔄 Nueva Sopa
+                        </button>
+                        <div class="text-center">
+                            <div id="wordsearch-progress" class="text-lg font-semibold text-green-700">
+                                Palabras encontradas: <span id="found-count">0</span>/8
+                            </div>
                         </div>
+                        <button id="hint-wordsearch-btn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                            💡 Pista
+                        </button>
                     </div>
+                    <div id="wordsearch-result" class="mt-4 font-medium"></div>
                 </div>
-                <button id="check-activity-btn" class="mt-6 bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors">Verificar Respuestas</button>
-                <div id="activity-result" class="mt-4 font-medium"></div>
+
+                <!-- Game 2: Fill in the Blanks -->
+                <div class="bg-white border-l-4 border-green-500 rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-green-700 mb-4 flex items-center">
+                        <span class="mr-3 text-2xl">📝</span>
+                        Juego 2: Completa las Oraciones
+                    </h3>
+                    <p class="text-slate-600 mb-6">Arrastra las palabras correctas a los espacios en blanco para completar las oraciones sobre documentos técnicos.</p>
+                    
+                    <!-- Word Bank -->
+                    <div class="mb-6">
+                        <h4 class="font-semibold text-green-800 mb-3">Banco de Palabras:</h4>
+                        <div id="word-bank" class="flex flex-wrap gap-3 p-4 bg-green-50 rounded-lg border-2 border-dashed border-green-300">
+                            <div class="word-token bg-gradient-to-r from-green-400 to-green-500 text-white px-4 py-2 rounded-full cursor-move shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105" draggable="true" data-word="técnico">
+                                técnico
+                            </div>
+                            <div class="word-token bg-gradient-to-r from-emerald-400 to-emerald-500 text-white px-4 py-2 rounded-full cursor-move shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105" draggable="true" data-word="precisa">
+                                precisa
+                            </div>
+                            <div class="word-token bg-gradient-to-r from-teal-400 to-teal-500 text-white px-4 py-2 rounded-full cursor-move shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105" draggable="true" data-word="estructurada">
+                                estructurada
+                            </div>
+                            <div class="word-token bg-gradient-to-r from-lime-400 to-lime-500 text-white px-4 py-2 rounded-full cursor-move shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105" draggable="true" data-word="comunicar">
+                                comunicar
+                            </div>
+                            <div class="word-token bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-full cursor-move shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105" draggable="true" data-word="especializada">
+                                especializada
+                            </div>
+                            <div class="word-token bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-4 py-2 rounded-full cursor-move shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105" draggable="true" data-word="objetiva">
+                                objetiva
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sentences to complete -->
+                    <div class="space-y-6">
+                        <div class="sentence-container p-4 rounded-lg border border-green-200">
+                            <p class="text-lg leading-relaxed">
+                                Un documento <span class="drop-zone inline-block w-24 h-8 border-2 border-dashed border-green-400 rounded bg-white mx-1 relative" data-correct="técnico"></span> 
+                                es un texto que explica información 
+                                <span class="drop-zone inline-block w-32 h-8 border-2 border-dashed border-green-400 rounded bg-white mx-1 relative" data-correct="especializada"></span> 
+                                sobre un producto o proceso.
+                            </p>
+                        </div>
+                        
+                        <div class="sentence-container p-4 rounded-lg border border-emerald-200">
+                            <p class="text-lg leading-relaxed">
+                                Su propósito principal es 
+                                <span class="drop-zone inline-block w-28 h-8 border-2 border-dashed border-emerald-400 rounded bg-white mx-1 relative" data-correct="comunicar"></span> 
+                                información de manera 
+                                <span class="drop-zone inline-block w-24 h-8 border-2 border-dashed border-emerald-400 rounded bg-white mx-1 relative" data-correct="precisa"></span> 
+                                y 
+                                <span class="drop-zone inline-block w-32 h-8 border-2 border-dashed border-emerald-400 rounded bg-white mx-1 relative" data-correct="estructurada"></span>.
+                            </p>
+                        </div>
+                        
+                        <div class="sentence-container p-4 rounded-lg border border-teal-200">
+                            <p class="text-lg leading-relaxed">
+                                Los informes presentan información de manera 
+                                <span class="drop-zone inline-block w-24 h-8 border-2 border-dashed border-teal-400 rounded bg-white mx-1 relative" data-correct="objetiva"></span> 
+                                para facilitar la toma de decisiones.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-between items-center">
+                        <button id="reset-fillblanks-btn" class="bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">
+                            🔄 Reiniciar
+                        </button>
+                        <button id="check-fillblanks-btn" class="bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors">
+                            ✅ Verificar Respuestas
+                        </button>
+                    </div>
+                    <div id="fillblanks-result" class="mt-4 font-medium"></div>
+                </div>
             </div>
 
             <!-- Evaluación -->
@@ -1693,44 +1889,389 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <script>
-    // JS para verificación de actividades
+    // JavaScript para los juegos interactivos
     document.addEventListener('DOMContentLoaded', function() {
-        const checkBtn = document.getElementById('check-activity-btn');
-        if (checkBtn) {
-            checkBtn.addEventListener('click', function() {
-                const respuestasCorrectas = [
-                    'c', // Ejercicio 1: "Informe financiero" (NO es uno de los informes que se solicita investigar)
-                    'b', // Ejercicio 2: "En primer lugar" (conector más adecuado para iniciar descripción)
-                    'b'  // Ejercicio 3: "Posibles conclusiones" (elemento que forma parte del esquema)
-                ];
+        
+        // GAME 1: Word Search Game
+        const GRID_SIZE = 15;
+        const words = ['INFORME', 'TECNICO', 'DOCUMENTO', 'ESTRUCTURA', 'PORTADA', 'ANEXOS', 'DATOS', 'ANALISIS'];
+        let grid = [];
+        let placedWords = [];
+        let foundWords = [];
+        let isSelecting = false;
+        let selectedCells = [];
+        let startCell = null;
+        
+        // Initialize word search game
+        function initWordSearchGame() {
+            generateGrid();
+            renderGrid();
+            updateProgress();
+        }
+        
+        function generateGrid() {
+            // Initialize empty grid
+            grid = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(''));
+            placedWords = [];
+            foundWords = [];
+            
+            // Place words in grid
+            words.forEach(word => {
+                placeWordInGrid(word);
+            });
+            
+            // Fill empty cells with random letters
+            fillEmptyCells();
+        }
+        
+        function placeWordInGrid(word) {
+            const directions = [
+                [0, 1],   // horizontal
+                [1, 0],   // vertical
+                [1, 1],   // diagonal down-right
+                [-1, 1],  // diagonal up-right
+            ];
+            
+            let placed = false;
+            let attempts = 0;
+            
+            while (!placed && attempts < 100) {
+                const direction = directions[Math.floor(Math.random() * directions.length)];
+                const row = Math.floor(Math.random() * GRID_SIZE);
+                const col = Math.floor(Math.random() * GRID_SIZE);
                 
-                let correctas = 0;
-                let feedback = [];
+                if (canPlaceWord(word, row, col, direction)) {
+                    placeWord(word, row, col, direction);
+                    placed = true;
+                }
+                attempts++;
+            }
+        }
+        
+        function canPlaceWord(word, row, col, direction) {
+            const [dRow, dCol] = direction;
+            
+            for (let i = 0; i < word.length; i++) {
+                const newRow = row + i * dRow;
+                const newCol = col + i * dCol;
                 
-                // Verificar cada ejercicio
-                respuestasCorrectas.forEach((respuestaCorrecta, idx) => {
-                    const ejercicioNum = idx + 1;
-                    const radioSeleccionado = document.querySelector(`input[name="ejercicio${ejercicioNum}"]:checked`);
+                if (newRow < 0 || newRow >= GRID_SIZE || newCol < 0 || newCol >= GRID_SIZE) {
+                    return false;
+                }
+                
+                if (grid[newRow][newCol] !== '' && grid[newRow][newCol] !== word[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
+        function placeWord(word, row, col, direction) {
+            const [dRow, dCol] = direction;
+            const cells = [];
+            
+            for (let i = 0; i < word.length; i++) {
+                const newRow = row + i * dRow;
+                const newCol = col + i * dCol;
+                grid[newRow][newCol] = word[i];
+                cells.push({row: newRow, col: newCol});
+            }
+            
+            placedWords.push({word, cells});
+        }
+        
+        function fillEmptyCells() {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            for (let row = 0; row < GRID_SIZE; row++) {
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    if (grid[row][col] === '') {
+                        grid[row][col] = letters[Math.floor(Math.random() * letters.length)];
+                    }
+                }
+            }
+        }
+        
+        function renderGrid() {
+            const gridContainer = document.getElementById('word-search-grid');
+            gridContainer.innerHTML = '';
+            gridContainer.className = 'word-search-grid';
+            
+            for (let row = 0; row < GRID_SIZE; row++) {
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'word-search-cell';
+                    cell.textContent = grid[row][col];
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
                     
-                    if (radioSeleccionado && radioSeleccionado.value === respuestaCorrecta) {
-                        correctas++;
-                        feedback.push(`Ejercicio ${ejercicioNum}: ✔️ Correcto`);
-                        // Marcar como correcto visualmente
-                        radioSeleccionado.closest('label').classList.add('text-green-700', 'font-semibold');
-                    } else {
-                        feedback.push(`Ejercicio ${ejercicioNum}: ❌ Incorrecto`);
-                        // Marcar como incorrecto visualmente si hay selección
-                        if (radioSeleccionado) {
-                            radioSeleccionado.closest('label').classList.add('text-red-700', 'font-semibold');
-                        }
+                    cell.addEventListener('mousedown', startSelection);
+                    cell.addEventListener('mouseenter', continueSelection);
+                    cell.addEventListener('mouseup', endSelection);
+                    
+                    gridContainer.appendChild(cell);
+                }
+            }
+        }
+        
+        function startSelection(e) {
+            isSelecting = true;
+            selectedCells = [];
+            startCell = {row: parseInt(e.target.dataset.row), col: parseInt(e.target.dataset.col)};
+            
+            // Clear previous selections
+            document.querySelectorAll('.word-search-cell.selected').forEach(cell => {
+                cell.classList.remove('selected');
+            });
+            
+            e.target.classList.add('selected');
+            selectedCells.push({row: startCell.row, col: startCell.col});
+        }
+        
+        function continueSelection(e) {
+            if (!isSelecting) return;
+            
+            const currentRow = parseInt(e.target.dataset.row);
+            const currentCol = parseInt(e.target.dataset.col);
+            
+            // Clear previous selections
+            document.querySelectorAll('.word-search-cell.selected').forEach(cell => {
+                cell.classList.remove('selected');
+            });
+            
+            // Calculate direction and select cells in line
+            selectedCells = getLineCells(startCell.row, startCell.col, currentRow, currentCol);
+            
+            selectedCells.forEach(cell => {
+                const cellElement = document.querySelector(`[data-row="${cell.row}"][data-col="${cell.col}"]`);
+                if (cellElement) cellElement.classList.add('selected');
+            });
+        }
+        
+        function endSelection() {
+            if (!isSelecting) return;
+            isSelecting = false;
+            
+            // Check if selected cells form a word
+            const selectedWord = selectedCells.map(cell => grid[cell.row][cell.col]).join('');
+            const reversedWord = selectedWord.split('').reverse().join('');
+            
+            let foundWord = null;
+            placedWords.forEach(wordObj => {
+                if ((wordObj.word === selectedWord || wordObj.word === reversedWord) && !foundWords.includes(wordObj.word)) {
+                    foundWord = wordObj;
+                }
+            });
+            
+            if (foundWord) {
+                // Mark word as found
+                foundWords.push(foundWord.word);
+                foundWord.cells.forEach(cell => {
+                    const cellElement = document.querySelector(`[data-row="${cell.row}"][data-col="${cell.col}"]`);
+                    if (cellElement) {
+                        cellElement.classList.remove('selected');
+                        cellElement.classList.add('found');
                     }
                 });
                 
-                const resultDiv = document.getElementById('activity-result');
-                resultDiv.innerHTML = `<strong>Respuestas correctas: ${correctas} de 3</strong><br>` + feedback.join('<br>');
-                resultDiv.className = correctas === 3 ? 'mt-4 font-medium text-green-700' : 'mt-4 font-medium text-red-700';
+                // Mark word in list as found
+                const wordElement = document.querySelector(`[data-word="${foundWord.word}"]`);
+                if (wordElement) wordElement.classList.add('found');
+                
+                updateProgress();
+                
+                if (foundWords.length === words.length) {
+                    setTimeout(() => {
+                        document.getElementById('wordsearch-result').innerHTML = 
+                            '<div class="text-green-700 font-bold">🎉 ¡Felicitaciones! Has encontrado todas las palabras</div>';
+                    }, 500);
+                }
+            } else {
+                // Clear selection if no word found
+                document.querySelectorAll('.word-search-cell.selected').forEach(cell => {
+                    cell.classList.remove('selected');
+                });
+            }
+        }
+        
+        function getLineCells(startRow, startCol, endRow, endCol) {
+            const cells = [];
+            const deltaRow = endRow - startRow;
+            const deltaCol = endCol - startCol;
+            
+            // Determine direction
+            let stepRow = 0, stepCol = 0;
+            
+            if (deltaRow === 0) {
+                // Horizontal
+                stepCol = deltaCol > 0 ? 1 : -1;
+            } else if (deltaCol === 0) {
+                // Vertical
+                stepRow = deltaRow > 0 ? 1 : -1;
+            } else if (Math.abs(deltaRow) === Math.abs(deltaCol)) {
+                // Diagonal
+                stepRow = deltaRow > 0 ? 1 : -1;
+                stepCol = deltaCol > 0 ? 1 : -1;
+            } else {
+                // Not a valid line, return just start cell
+                return [{row: startRow, col: startCol}];
+            }
+            
+            let currentRow = startRow;
+            let currentCol = startCol;
+            
+            while (currentRow >= 0 && currentRow < GRID_SIZE && 
+                   currentCol >= 0 && currentCol < GRID_SIZE &&
+                   (stepRow === 0 || Math.sign(endRow - currentRow) === Math.sign(stepRow) || currentRow === endRow) &&
+                   (stepCol === 0 || Math.sign(endCol - currentCol) === Math.sign(stepCol) || currentCol === endCol)) {
+                
+                cells.push({row: currentRow, col: currentCol});
+                
+                if (currentRow === endRow && currentCol === endCol) break;
+                
+                currentRow += stepRow;
+                currentCol += stepCol;
+            }
+            
+            return cells;
+        }
+        
+        function updateProgress() {
+            document.getElementById('found-count').textContent = foundWords.length;
+        }
+        
+        function giveHint() {
+            const unFoundWords = placedWords.filter(wordObj => !foundWords.includes(wordObj.word));
+            if (unFoundWords.length === 0) return;
+            
+            const randomWord = unFoundWords[Math.floor(Math.random() * unFoundWords.length)];
+            const firstCell = randomWord.cells[0];
+            
+            const cellElement = document.querySelector(`[data-row="${firstCell.row}"][data-col="${firstCell.col}"]`);
+            if (cellElement) {
+                cellElement.classList.add('hint');
+                setTimeout(() => {
+                    cellElement.classList.remove('hint');
+                }, 3000);
+            }
+        }
+        
+        // Event listeners for word search
+        document.getElementById('reset-wordsearch-btn').addEventListener('click', function() {
+            initWordSearchGame();
+            document.getElementById('wordsearch-result').innerHTML = '';
+            
+            // Reset word list
+            document.querySelectorAll('.word-to-find').forEach(el => {
+                el.classList.remove('found');
+            });
+        });
+        
+        document.getElementById('hint-wordsearch-btn').addEventListener('click', giveHint);
+        
+        // GAME 2: Fill in the Blanks Game
+        let draggedWord = null;
+        
+        // Initialize drag and drop for word tokens
+        function initFillBlanksGame() {
+            const wordTokens = document.querySelectorAll('.word-token');
+            const dropZones = document.querySelectorAll('.drop-zone');
+            
+            wordTokens.forEach(token => {
+                token.addEventListener('dragstart', function(e) {
+                    draggedWord = this;
+                    this.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                
+                token.addEventListener('dragend', function() {
+                    this.classList.remove('dragging');
+                    draggedWord = null;
+                });
+            });
+            
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.classList.add('drag-over');
+                });
+                
+                zone.addEventListener('dragleave', function() {
+                    this.classList.remove('drag-over');
+                });
+                
+                zone.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('drag-over');
+                    
+                    if (draggedWord) {
+                        // Clear previous content
+                        this.innerHTML = '';
+                        
+                        // Add the word to the drop zone
+                        const wordSpan = document.createElement('span');
+                        wordSpan.className = 'word-in-zone';
+                        wordSpan.textContent = draggedWord.dataset.word;
+                        this.appendChild(wordSpan);
+                        this.classList.add('filled');
+                        
+                        // Hide the original word token
+                        draggedWord.style.display = 'none';
+                    }
+                });
             });
         }
+        
+        // Check fill in the blanks answers
+        document.getElementById('check-fillblanks-btn').addEventListener('click', function() {
+            const dropZones = document.querySelectorAll('.drop-zone');
+            let correct = 0;
+            let total = dropZones.length;
+            
+            dropZones.forEach(zone => {
+                zone.classList.remove('correct', 'incorrect');
+                const correctWord = zone.dataset.correct;
+                const wordSpan = zone.querySelector('.word-in-zone');
+                
+                if (wordSpan && wordSpan.textContent === correctWord) {
+                    correct++;
+                    zone.classList.add('correct');
+                } else if (wordSpan) {
+                    zone.classList.add('incorrect');
+                }
+            });
+            
+            const resultDiv = document.getElementById('fillblanks-result');
+            const percentage = Math.round((correct / total) * 100);
+            
+            if (correct === total) {
+                resultDiv.innerHTML = `<div class="text-green-700 font-bold">🎉 ¡Perfecto! Todas las palabras están en el lugar correcto (${correct}/${total})</div>`;
+            } else {
+                resultDiv.innerHTML = `<div class="text-orange-600 font-bold">📝 Palabras correctas: ${correct}/${total} (${percentage}%)</div>`;
+            }
+        });
+        
+        // Reset fill in the blanks game
+        document.getElementById('reset-fillblanks-btn').addEventListener('click', function() {
+            const dropZones = document.querySelectorAll('.drop-zone');
+            const wordTokens = document.querySelectorAll('.word-token');
+            
+            // Clear all drop zones
+            dropZones.forEach(zone => {
+                zone.innerHTML = '';
+                zone.classList.remove('filled', 'correct', 'incorrect');
+            });
+            
+            // Show all word tokens
+            wordTokens.forEach(token => {
+                token.style.display = 'inline-block';
+            });
+            
+            document.getElementById('fillblanks-result').innerHTML = '';
+        });
+        
+        // Initialize both games
+        initWordSearchGame();
+        initFillBlanksGame();
     });
     // JS simple para acordeón
     document.querySelectorAll('.accordion-btn').forEach(btn => {
